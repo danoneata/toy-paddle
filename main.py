@@ -68,7 +68,7 @@ for c in range(n_classes):
 
 
 
-def make_plot(ax):
+def make_plot(ax, centers):
     ax.scatter(X_tr[:, 0], X_tr[:, 1], c=y_tr, cmap="tab10", label="support samples")
     ax.scatter(
         centers_computed[:, 0],
@@ -82,13 +82,13 @@ def make_plot(ax):
     for c in range(n_classes):
         ax.text(centers_computed[c, 0], centers_computed[c, 1], f"{c}", fontsize=12)
 
-    dist = cdist(X_te, centers_computed)
+    dist = cdist(X_te, centers)
     closest_centers = np.argmin(dist, axis=1)
 
     for i, c in enumerate(closest_centers):
         ax.plot(
-            [X_te[i, 0], centers_computed[c, 0]],
-            [X_te[i, 1], centers_computed[c, 1]],
+            [X_te[i, 0], centers[c, 0]],
+            [X_te[i, 1], centers[c, 1]],
             c="k",
             alpha=0.5,
         )
@@ -96,7 +96,7 @@ def make_plot(ax):
     ax.legend()
 
 fig, ax = plt.subplots()
-make_plot(ax)
+make_plot(ax, centers_computed)
 cols[0].pyplot(fig)
 
 paddle_kwargs = {
@@ -124,7 +124,7 @@ for u, w in paddle.run_task(task_dic):
     except:
         u = None
     fig, ax = plt.subplots()
-    make_plot(ax)
+    make_plot(ax, w)
     ax.scatter(
         w[:, 0],
         w[:, 1],
