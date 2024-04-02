@@ -6,6 +6,7 @@ from collections import Counter
 
 from sklearn.datasets import make_blobs
 from matplotlib import pyplot as plt
+from scipy.spatial.distance import cdist
 from paddle import Paddle
 
 import numpy as np
@@ -65,20 +66,37 @@ centers_computed = np.zeros((n_classes, 2))
 for c in range(n_classes):
     centers_computed[c] = np.mean(X_tr[y_tr == c], axis=0)
 
+
+
+def make_plot(ax):
+    ax.scatter(X_tr[:, 0], X_tr[:, 1], c=y_tr, cmap="tab10", label="support samples")
+    ax.scatter(
+        centers_computed[:, 0],
+        centers_computed[:, 1],
+        marker="*",
+        c=list(range(n_classes)),
+        cmap="tab10",
+        label="centers",
+    )
+    ax.scatter(X_te[:, 0], X_te[:, 1], c="k", marker=".", label="query samples")
+    for c in range(n_classes):
+        ax.text(centers_computed[c, 0], centers_computed[c, 1], f"{c}", fontsize=12)
+
+    dist = cdist(X_te, centers_computed)
+    closest_centers = np.argmin(dist, axis=1)
+
+    for i, c in enumerate(closest_centers):
+        ax.plot(
+            [X_te[i, 0], centers_computed[c, 0]],
+            [X_te[i, 1], centers_computed[c, 1]],
+            c="k",
+            alpha=0.5,
+        )
+
+    ax.legend()
+
 fig, ax = plt.subplots()
-ax.scatter(X_tr[:, 0], X_tr[:, 1], c=y_tr, cmap="tab10", label="support samples")
-ax.scatter(
-    centers_computed[:, 0],
-    centers_computed[:, 1],
-    marker="*",
-    c=list(range(n_classes)),
-    cmap="tab10",
-    label="centers",
-)
-ax.scatter(X_te[:, 0], X_te[:, 1], c="k", marker=".", label="query samples")
-for c in range(n_classes):
-    ax.text(centers_computed[c, 0], centers_computed[c, 1], f"{c}", fontsize=12)
-ax.legend()
+make_plot(ax)
 cols[0].pyplot(fig)
 
 paddle_kwargs = {
@@ -106,15 +124,7 @@ for u, w in paddle.run_task(task_dic):
     except:
         u = None
     fig, ax = plt.subplots()
-    ax.scatter(X_tr[:, 0], X_tr[:, 1], c=y_tr, cmap="tab10", label="support samples")
-    ax.scatter(
-        centers_computed[:, 0],
-        centers_computed[:, 1],
-        marker="*",
-        c=list(range(n_classes)),
-        cmap="tab10",
-        label="centers",
-    )
+    make_plot(ax)
     ax.scatter(
         w[:, 0],
         w[:, 1],
@@ -123,8 +133,6 @@ for u, w in paddle.run_task(task_dic):
         cmap="tab10",
         label="centers paddle",
     )
-    ax.scatter(X_te[:, 0], X_te[:, 1], c="k", marker=".", label="query samples")
-    ax.legend()
     cols[1].pyplot(fig)
     cols[1].markdown("U")
     cols[1].write(u)
