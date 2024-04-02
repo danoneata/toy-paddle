@@ -69,7 +69,7 @@ for c in range(n_classes):
 
 
 
-def make_plot(ax, centers):
+def make_plot(ax, centers, assigned_centers):
     ax.scatter(X_tr[:, 0], X_tr[:, 1], c=y_tr, cmap="tab10", label="support samples")
     ax.scatter(
         centers_computed[:, 0],
@@ -84,10 +84,7 @@ def make_plot(ax, centers):
     for c in range(n_classes):
         ax.text(centers[c, 0], centers[c, 1], f"{c}", fontsize=12)
 
-    dist = cdist(X_te, centers)
-    closest_centers = np.argmin(dist, axis=1)
-
-    for i, c in enumerate(closest_centers):
+    for i, c in enumerate(assigned_centers):
         ax.plot(
             [X_te[i, 0], centers[c, 0]],
             [X_te[i, 1], centers[c, 1]],
@@ -97,8 +94,11 @@ def make_plot(ax, centers):
 
     ax.legend()
 
+dist = cdist(X_te, centers)
+closest_centers = np.argmin(dist, axis=1)
+
 fig, ax = plt.subplots()
-make_plot(ax, centers_computed)
+make_plot(ax, centers_computed, closest_centers)
 cols[0].pyplot(fig)
 
 paddle_kwargs = {
@@ -127,8 +127,9 @@ for u, w in paddle.run_task(task_dic):
         u = None
 
     if to_show_intermediate:
+        cc = np.argmax(u, 1)
         fig, ax = plt.subplots()
-        make_plot(ax, w)
+        make_plot(ax, w, cc)
         ax.scatter(
             w[:, 0],
             w[:, 1],
@@ -141,8 +142,9 @@ for u, w in paddle.run_task(task_dic):
         cols[1].markdown("U")
         cols[1].write(u)
 
+cc = np.argmax(u, 1)
 fig, ax = plt.subplots()
-make_plot(ax, w)
+make_plot(ax, w, cc)
 ax.scatter(
     w[:, 0],
     w[:, 1],
@@ -154,3 +156,9 @@ ax.scatter(
 cols[1].pyplot(fig)
 cols[1].markdown("U")
 cols[1].write(u)
+
+# dist = cdist(X_te, w)
+# cc1 = np.argmin(dist, axis=1)
+# cc2 = np.argmax(u, 1)
+# 
+# assert (cc1 == cc2).all()
