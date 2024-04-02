@@ -60,8 +60,8 @@ y_te = [idxs[i] for i in range(n_classes_query) for _ in range(n_samples_per_cla
 y_te = np.array(y_te)
 
 cols = st.columns(2)
-cols[0].header("Dataset")
-cols[1].header("Paddle iterations")
+cols[0].header("Nearest class mean")
+cols[1].header("Paddle")
 
 centers_computed = np.zeros((n_classes, 2))
 for c in range(n_classes):
